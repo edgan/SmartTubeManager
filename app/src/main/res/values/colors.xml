@@ -1,0 +1,5 @@
+<resources>
+    <color name="button_pressed_color">#FFFF0000</color>
+    <color name="button_focused_color">#FFFF0000</color>
+    <color name="button_default_color">#FFFFFFFF</color>
+</resources>

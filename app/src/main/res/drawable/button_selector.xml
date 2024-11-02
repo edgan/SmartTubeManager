@@ -1,0 +1,8 @@
+<selector xmlns:android="http://schemas.android.com/apk/res/android">
+    <!-- Button color when pressed -->
+    <item android:state_pressed="true" android:drawable="@color/button_pressed_color" />
+    <!-- Button color when focused -->
+    <item android:state_focused="true" android:drawable="@color/button_focused_color" />
+    <!-- Default button color -->
+    <item android:drawable="@color/button_default_color" />
+</selector>
