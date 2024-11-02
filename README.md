@@ -13,7 +13,7 @@ has the ability to download and install them.
 
 It is highly advised that you backup your SmartTube Beta settings from within
 the application before uninstalling the application. This can include your
-Google accounts and all your preferences. Once you have reinstall a version of
+Google accounts and all your preferences. Once you have reinstalled a version of
 the application you can restore your settings.
 
 It has been tested on an Nvidia Shield running Android 11, and a Pixel phone
