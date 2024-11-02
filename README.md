@@ -1,5 +1,7 @@
 # SmartTube Manager
 
+![SmartTube Manager screenshot](/SmartTubeManager.png?raw=true "SmartTube Manager screenshot")
+
 This is an Android application to make it easier to install and uninstall
 SmartTube Beta arm64. It primarily to make downgrading SmartTube Beta easier.
 Given that Android doesn't allow downgrades, SmartTube Beta can't downgrade
