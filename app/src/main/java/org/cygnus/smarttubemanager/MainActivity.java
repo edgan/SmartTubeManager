@@ -5,6 +5,7 @@ import android.app.Activity;
 import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.net.Uri;
+import android.os.Build;
 import android.os.Bundle;
 import android.os.Environment;
 import android.text.Html;
@@ -45,7 +46,7 @@ import java.util.Map;
 
 public class MainActivity extends AppCompatActivity {
     private static final int REQUEST_CODE_PERMISSIONS = 100;
-    private static final String ARCH = "arm64-v8a";
+    private static final String ARCH = getDeviceArchitecture();
     private static final String CHANNEL = "beta";
     private static final String API_URL = "https://api.github.com/repos/yuliskov/SmartTube/releases";
     private List<Map.Entry<String, String>> builds = new ArrayList<>();
@@ -75,6 +76,10 @@ public class MainActivity extends AppCompatActivity {
         fetchReleases();
     }
 
+    private static String getDeviceArchitecture() {
+        String[] supportedAbis = Build.SUPPORTED_ABIS;
+        return supportedAbis[0]; // The primary supported ABI
+    }
     private static final int UNINSTALL_REQUEST_CODE = 1;
 
     private final ActivityResultLauncher<Intent> uninstallLauncher = registerForActivityResult(
