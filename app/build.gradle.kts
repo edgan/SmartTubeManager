@@ -8,13 +8,31 @@ android {
     namespace = "org.cygnus.smarttubemanager"
     compileSdk = 34
 
+    val appName = "smarttubemanager"
+
     defaultConfig {
         applicationId = "org.cygnus.smarttubemanager"
         buildConfigField("String", "APPLICATION_ID", "\"${applicationId}\"")
         minSdk = 28
         targetSdk = 34
         versionCode = 1
-        versionName = "1.0"
+        versionName = "1.0.2"
+    }
+
+    applicationVariants.all {
+        val variant = this
+        outputs.all {
+            (this as? com.android.build.gradle.internal.api.ApkVariantOutputImpl)?.let { output ->
+                val abiFilter = output.filters.find { it.filterType == com.android.build.api.variant.FilterConfiguration.FilterType.ABI.name }?.identifier
+                val versionName = variant.versionName
+
+                output.outputFileName = if (abiFilter != null) {
+                    "${appName}-${versionName}-${abiFilter}.apk"
+                } else {
+                    "${appName}-${versionName}.apk"
+                }
+            }
+        }
     }
 
     splits {
@@ -33,6 +51,7 @@ android {
                 getDefaultProguardFile("proguard-android-optimize.txt"),
                 "proguard-rules.pro"
             )
+            signingConfig = signingConfigs.getByName("debug")
         }
     }
     compileOptions {

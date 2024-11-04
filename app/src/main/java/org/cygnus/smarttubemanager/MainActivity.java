@@ -18,7 +18,6 @@ import android.widget.Toast;
 
 import androidx.activity.result.ActivityResultLauncher;
 import androidx.activity.result.contract.ActivityResultContracts;
-import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.appcompat.app.ActionBar;
 import androidx.appcompat.app.AlertDialog;
@@ -48,7 +47,10 @@ public class MainActivity extends AppCompatActivity {
     private static final int REQUEST_CODE_PERMISSIONS = 100;
     private static final String ARCH = getDeviceArchitecture();
     private static final String CHANNEL = "beta";
-    private static final String API_URL = "https://api.github.com/repos/yuliskov/SmartTube/releases";
+    private static final String APP_NAME = "SmartTube";
+    private static final String MANAGER_APP_NAME = "SmartTubeManager";
+    private static final String SMARTTUBEMANAGER_API_URL = "https://api.github.com/repos/edgan/SmartTubeManager/releases";
+    private static final String SMARTTUBE_API_URL = "https://api.github.com/repos/yuliskov/SmartTube/releases";
     private List<Map.Entry<String, String>> builds = new ArrayList<>();
     private static final String TAG = "MainActivity";
 
@@ -73,7 +75,8 @@ public class MainActivity extends AppCompatActivity {
         // Set an OnClickListener to trigger the uninstall
         uninstallButton.setOnClickListener(v -> uninstallApp());
 
-        fetchReleases();
+        fetchReleases(SMARTTUBEMANAGER_API_URL);
+        fetchReleases(SMARTTUBE_API_URL);
     }
 
     private static String getDeviceArchitecture() {
@@ -86,13 +89,12 @@ public class MainActivity extends AppCompatActivity {
             new ActivityResultContracts.StartActivityForResult(),
             result -> {
                 if (result.getResultCode() == Activity.RESULT_OK) {
-                    Log.d(TAG, "Uninstallation successful");
-                    Toast.makeText(this, "App uninstalled successfully", Toast.LENGTH_SHORT).show();
-                    // Optional: finish activity or perform cleanup
-                    finish();
+                    Log.d(TAG, "Uninstallation initiated successfully");
+                    Toast.makeText(this, "Uninstallation initiated successfully", Toast.LENGTH_SHORT).show();
                 } else {
-                    Log.d(TAG, "Uninstallation failed or was cancelled");
-                    Toast.makeText(this, "Uninstall cancelled or failed", Toast.LENGTH_SHORT).show();
+                    Log.d(TAG, "Uninstallation successful or cancelled");
+                    Toast.makeText(this, "App uninstalled successfully", Toast.LENGTH_SHORT).show();
+                    finish();
                 }
             }
     );
@@ -146,26 +148,36 @@ public class MainActivity extends AppCompatActivity {
         getWindowManager().getDefaultDisplay().getMetrics(displayMetrics);
         int screenWidth = displayMetrics.widthPixels;
 
-        // Calculate 20% of screen width
-        int buttonWidth = screenWidth / 5;
+        // Calculate 33.3% of screen width
+        int buttonWidth = screenWidth / 3;
 
         for (Map.Entry<String, String> entry : builds) {
             String version = entry.getKey();
             String downloadUrl = entry.getValue();
             Log.d(TAG, "Adding button for version: " + version + " with URL: " + downloadUrl);
-
             Button button = new Button(this);
-            button.setText(version);
+            String manager_button_text = "Update " + MANAGER_APP_NAME;
+
+            if (downloadUrl.contains(MANAGER_APP_NAME)) {
+                button.setText(manager_button_text);
+            } else {
+                button.setText(version);
+            }
+
+            button.setTextColor(ContextCompat.getColor(this, R.color.button_text_color));
             button.setBackgroundResource(R.drawable.button_selector);
 
             // Create layout parameters for the button
             LinearLayout.LayoutParams params = new LinearLayout.LayoutParams(
-                    buttonWidth,  // Width is 20% of screen
+                    buttonWidth,
                     LinearLayout.LayoutParams.WRAP_CONTENT  // Height wraps content
             );
 
-            // Add margins if desired (optional)
-            params.setMargins(0, 8, 0, 8);  // top and bottom margins of 8dp
+            if (downloadUrl.contains(MANAGER_APP_NAME)) {
+                params.setMargins(0, 32, 0, 8);
+            } else {
+                params.setMargins(0, 8, 0, 8);
+            }
 
             // Center the button horizontally
             params.gravity = Gravity.CENTER_HORIZONTAL;
@@ -177,7 +189,7 @@ public class MainActivity extends AppCompatActivity {
                 showConfirmationDialog(version, downloadUrl);
             });
 
-            buttonContainer.addView(button);
+            buttonContainer.addView(button, 0);
         }
     }
 
@@ -187,11 +199,10 @@ public class MainActivity extends AppCompatActivity {
         }
     }
 
-
-    private void fetchReleases() {
+    private void fetchReleases(String releaseUrl) {
         new Thread(() -> {
             try {
-                URL url = new URL(API_URL);
+                URL url = new URL(releaseUrl);
                 HttpURLConnection urlConnection = (HttpURLConnection) url.openConnection();
                 urlConnection.setRequestMethod("GET");
                 urlConnection.connect();
@@ -215,29 +226,51 @@ public class MainActivity extends AppCompatActivity {
         }).start();
     }
 
+    private void parseAssets(JSONObject release, String releaseName) {
+        try {
+            JSONArray assets = release.getJSONArray("assets");
+            for (int j = 0; j < assets.length(); j++) {
+                JSONObject asset = assets.getJSONObject(j);
+                String downloadUrl = asset.getString("browser_download_url");
+
+                if (downloadUrl.contains(ARCH)) {
+                    builds.add(Map.entry(releaseName, downloadUrl));
+                }
+            }
+        } catch (JSONException e) {
+            Log.e(TAG, "JSON Exception: " + e.getMessage());
+        }
+    }
+
     private void parseReleases(String releasesJson) {
         try {
+            String app = "";
             JSONArray releases = new JSONArray(releasesJson);
             for (int i = 0; i < releases.length(); i++) {
                 JSONObject release = releases.getJSONObject(i);
+                String releaseHtmlUrl = release.getString("html_url");
+                if (releaseHtmlUrl.contains(MANAGER_APP_NAME)) {
+                    app = MANAGER_APP_NAME;
+                } else {
+                    app = APP_NAME;
+                }
+
                 String releaseName = release.getString("name").toLowerCase();
 
-                if (releaseName.contains(CHANNEL)) {
-                    JSONArray assets = release.getJSONArray("assets");
-                    for (int j = 0; j < assets.length(); j++) {
-                        JSONObject asset = assets.getJSONObject(j);
-                        String downloadUrl = asset.getString("browser_download_url");
-
-                        if (downloadUrl.contains(ARCH)) {
-                            builds.add(Map.entry(releaseName, downloadUrl));
-                        }
-                    }
+                if (app.equals(APP_NAME) && releaseName.contains(CHANNEL)) {
+                    parseAssets(release, releaseName);
+                } else if (app.equals(MANAGER_APP_NAME)) {
+                    parseAssets(release, releaseName);
                 }
             }
 
-            int numberOfBuilds = 5;
+            int numberOfBuilds = 1;
 
-            // Sort builds in descending order by version and truncate to 9 entries
+            if (app.equals(APP_NAME)) {
+                numberOfBuilds = 5;
+            }
+
+            // Sort builds in descending order by version and truncate entries
             builds.sort((entry1, entry2) -> extractVersionNumber(entry2.getKey()) - extractVersionNumber(entry1.getKey()));
             if (builds.size() > numberOfBuilds) {
                 builds = builds.subList(0, numberOfBuilds);
@@ -309,18 +342,5 @@ public class MainActivity extends AppCompatActivity {
         intent.setDataAndType(apkUri, "application/vnd.android.package-archive");
         intent.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION);
         startActivity(intent);
-    }
-
-    @Override
-    public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
-        super.onRequestPermissionsResult(requestCode, permissions, grantResults);
-
-        if (requestCode == REQUEST_CODE_PERMISSIONS) {
-            if (grantResults.length > 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
-                fetchReleases();
-            } else {
-                Toast.makeText(this, "Permissions required to download and install APKs", Toast.LENGTH_SHORT).show();
-            }
-        }
     }
 }
