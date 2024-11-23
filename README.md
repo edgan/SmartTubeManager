@@ -23,3 +23,21 @@ Pixel phone(arm64-v7a) running Android 15. Feel free to file issues about adding
 support for more devices, and versions of Android.
 
 This was inspired by Revanced Manager.
+
+## Installation
+1. Pull a URL like 
+[1.0.2](https://github.com/edgan/SmartTubeManager/releases/download/1.0.2/smarttubemanager-1.0.2-arm64-v8a.apk)
+from the [Releases](https://github.com/edgan/SmartTubeManager/releases)
+section on any non-AndroidTV device.
+2. Go to
+[AFTVnews URL Shortener](https://go.aftvnews.com/) and paste the URL to get a
+six digit short code.
+3. Install
+[Downloader by AFTVnews](https://play.google.com/store/apps/details?id=com.esaba.downloader&hl=en_US&pli=1)
+via the [Google Play Store](https://play.google.com/store/) on your AndroidTV
+device.
+4. Enter the six digit short code to
+[Downloader by AFTVnews](https://play.google.com/store/apps/details?id=com.esaba.downloader&hl=en_US&pli=1).
+5. Click install.
+6. Enable Downloader to install applications.
+7. Click install again to install SmartTube Manager.
